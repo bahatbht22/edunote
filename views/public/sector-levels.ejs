@@ -1,0 +1,50 @@
+<section class="page-header sector-page-header" style="--sector-color: <%= sector.color %>">
+  <div class="container">
+    <a href="/notes" class="back-link">← All Subjects</a>
+    <div class="sector-header-info">
+      <div class="sector-icon-lg"><span><%= sector.name.charAt(0) %></span></div>
+      <div>
+        <h1><%= sector.name %></h1>
+        <p><%= sector.description || 'Choose your education level to find the right notes.' %></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="level-picker-section">
+  <div class="container">
+    <div class="level-picker-header">
+      <h2>Choose Your <em>Level</em></h2>
+      <p>Select the level that matches your education</p>
+    </div>
+
+    <% if (levels.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-icon">📂</div>
+        <h3>No levels added yet</h3>
+        <p>Notes for <strong><%= sector.name %></strong> are being prepared. Check back soon!</p>
+        <a href="/notes" class="btn btn-outline-dark" style="margin-top:1.5rem">← Browse other subjects</a>
+      </div>
+    <% } else { %>
+      <div class="level-picker-grid">
+        <% levels.forEach((level, i) => { %>
+          <a href="/notes/<%= sector.slug %>/<%= level.slug %>" class="level-picker-card" style="--lc: <%= level.color %>">
+            <div class="lpc-left">
+              <div class="lpc-num" style="background:<%= level.color %>"><%= i + 1 %></div>
+              <div class="lpc-info">
+                <h3><%= level.name %></h3>
+                <% if (level.description) { %><p><%= level.description %></p><% } %>
+              </div>
+            </div>
+            <div class="lpc-right">
+              <span class="lpc-count"><%= level.note_count %> note<%= level.note_count != 1 ? 's' : '' %></span>
+              <span class="lpc-arrow" style="color:<%= level.color %>">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+              </span>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>

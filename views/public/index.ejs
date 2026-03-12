@@ -1,0 +1,125 @@
+<!-- EduNote Homepage -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-badge">🇷🇼 Rwanda Education Platform</div>
+      <h1 class="hero-title">
+        Free Notes for<br>
+        <em>Every Student</em><br>
+        in Rwanda
+      </h1>
+      <p class="hero-desc">
+        Access curriculum-aligned notes for O'Level, A'Level, and TVET programs — totally free. Download or read online.
+      </p>
+      <div class="hero-actions">
+        <a href="/browse" class="btn-hero-primary">📚 Get Notes Free</a>
+        <a href="/browse" class="btn-hero-secondary">Browse by Level →</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <strong><%= noteCount || '0' %>+</strong>
+          <span>Notes</span>
+        </div>
+        <div class="hero-stat">
+          <strong><%= levels.length %></strong>
+          <span>Levels</span>
+        </div>
+        <div class="hero-stat">
+          <strong><%= comboCount || '0' %>+</strong>
+          <span>Subjects</span>
+        </div>
+        <div class="hero-stat">
+          <strong>100%</strong>
+          <span>Free</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="floating-card">
+        <div class="fc-icon" style="background:rgba(99,102,241,.25)">📖</div>
+        <div class="fc-text">
+          <strong>O'Level Notes</strong>
+          <span>S1 — S3 Curriculum</span>
+        </div>
+      </div>
+      <div class="floating-card">
+        <div class="fc-icon" style="background:rgba(16,185,129,.2)">🎓</div>
+        <div class="fc-text">
+          <strong>A'Level Combinations</strong>
+          <span>MPC, PCB, MPG & more</span>
+        </div>
+      </div>
+      <div class="floating-card">
+        <div class="fc-icon" style="background:rgba(245,158,11,.2)">🔧</div>
+        <div class="fc-text">
+          <strong>TVET Trades</strong>
+          <span>L3, L4, L5 Levels</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background: var(--white);">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">Education Levels</div>
+      <h2 class="section-title">Choose Your Level</h2>
+      <p class="section-desc">Find notes tailored to Rwanda's national curriculum for your education level.</p>
+    </div>
+    <div class="levels-grid">
+      <% levels.forEach(level => { %>
+        <a href="/browse/<%= level.slug %>" class="level-card" style="--card-color: <%= level.color %>">
+          <div class="level-card-icon">
+            <% if (level.name.includes("O'Level") || level.name.toLowerCase().includes('ordinary')) { %>📘
+            <% } else if (level.name.includes("A'Level") || level.name.toLowerCase().includes('advanced')) { %>🎓
+            <% } else if (level.name.toLowerCase().includes('tvet')) { %>🔧
+            <% } else { %>📚<% } %>
+          </div>
+          <h3><%= level.name %></h3>
+          <p><%= level.description || 'Browse combinations and access notes for this level.' %></p>
+          <div class="level-card-arrow">→</div>
+        </a>
+      <% }) %>
+      <% if (levels.length === 0) { %>
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-icon">📭</div>
+          <h3>No levels yet</h3>
+          <p>The admin will add content soon.</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background: var(--surface);">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">How It Works</div>
+      <h2 class="section-title">Start Learning in 3 Steps</h2>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h4>Choose Your Level</h4>
+        <p>Select O'Level, A'Level, or TVET based on your current education program.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h4>Pick Combination / Trade</h4>
+        <p>Select your combination (e.g. MPC, PCB) or TVET trade (e.g. SOD, CSA).</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h4>Select Your Class</h4>
+        <p>Choose your class (S4, S5, S6 or L3, L4, L5) and access all available notes.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <h4>Read or Download</h4>
+        <p>Read notes directly in the browser or download for offline use — completely free.</p>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,103 @@
+<div class="admin-page-header">
+  <div>
+    <h1>Settings</h1>
+    <div class="admin-breadcrumb">Account & Profile</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:900px">
+
+  <!-- Profile Photo -->
+  <div class="card" style="grid-column:1/-1">
+    <div class="card-header"><h2>Profile Photo</h2></div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:2rem;flex-wrap:wrap">
+        <div class="avatar-preview-wrap">
+          <% if (admin && admin.avatar) { %>
+            <img src="/avatars/<%= admin.avatar %>" alt="Avatar" class="avatar-preview" id="avatarImg">
+          <% } else { %>
+            <div class="avatar-initial-lg" id="avatarInitial"><%= admin ? admin.name.charAt(0).toUpperCase() : 'A' %></div>
+          <% } %>
+        </div>
+        <div>
+          <form action="/admin/settings/avatar" method="POST" enctype="multipart/form-data" id="avatarForm">
+            <input type="file" name="avatar" id="avatarFile" accept="image/*" style="display:none" onchange="previewAvatar(this)">
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+              <button type="button" onclick="document.getElementById('avatarFile').click()" class="btn btn-secondary">Choose Photo</button>
+              <button type="submit" class="btn btn-primary" id="saveAvatarBtn" style="display:none">Save Photo</button>
+              <% if (admin && admin.avatar) { %>
+                <form action="/admin/settings/avatar/remove" method="POST" style="display:inline" onsubmit="return confirm('Remove profile photo?')">
+                  <button type="submit" class="btn btn-danger">Remove</button>
+                </form>
+              <% } %>
+            </div>
+          </form>
+          <p style="font-size:.8rem;color:var(--muted);margin-top:.75rem">JPG, PNG, GIF, WEBP — max 5MB</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Info -->
+  <div class="card">
+    <div class="card-header"><h2>Profile Info</h2></div>
+    <div class="card-body">
+      <form action="/admin/settings/profile" method="POST">
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>Name</label>
+          <input type="text" name="name" value="<%= admin ? admin.name : '' %>" required>
+        </div>
+        <div class="form-group" style="margin-bottom:1.5rem">
+          <label>Email</label>
+          <input type="email" name="email" value="<%= admin ? admin.email : '' %>" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Profile</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Change Password -->
+  <div class="card">
+    <div class="card-header"><h2>Change Password</h2></div>
+    <div class="card-body">
+      <form action="/admin/settings/password" method="POST">
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>Current Password</label>
+          <input type="password" name="current_password" required>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>New Password</label>
+          <input type="password" name="new_password" minlength="6" required>
+        </div>
+        <div class="form-group" style="margin-bottom:1.5rem">
+          <label>Confirm New Password</label>
+          <input type="password" name="confirm_password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Password</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function previewAvatar(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const el = document.getElementById('avatarImg') || document.getElementById('avatarInitial');
+      if (el.tagName === 'IMG') {
+        el.src = e.target.result;
+      } else {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'avatar-preview';
+        img.id = 'avatarImg';
+        el.replaceWith(img);
+      }
+      document.getElementById('saveAvatarBtn').style.display = 'inline-flex';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>

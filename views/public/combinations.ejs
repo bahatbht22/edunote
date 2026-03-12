@@ -1,0 +1,58 @@
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="/browse">Browse</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="current"><%= level.name %></span>
+    </div>
+    <div class="page-hero-badge" style="background: color-mix(in srgb, <%= level.color %> 25%, transparent); border: 1px solid color-mix(in srgb, <%= level.color %> 40%, transparent)">
+      <% if (level.name.includes("O'Level") || level.name.toLowerCase().includes('ordinary')) { %>📘
+      <% } else if (level.name.includes("A'Level") || level.name.toLowerCase().includes('advanced')) { %>🎓
+      <% } else if (level.name.toLowerCase().includes('tvet')) { %>🔧
+      <% } else { %>📚<% } %>
+      <%= level.name %>
+    </div>
+    <h1 class="page-hero-title">
+      <% if (level.name.toLowerCase().includes('tvet')) { %>Choose Your Trade
+      <% } else { %>Choose Your Combination<% } %>
+    </h1>
+    <p class="page-hero-desc"><%= level.description || 'Select your combination or trade to see available classes and notes.' %></p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <% if (combinations.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>No combinations yet</h3>
+        <p>Content is being prepared for <%= level.name %>. Check back soon.</p>
+      </div>
+    <% } else { %>
+      <div class="combo-grid">
+        <% combinations.forEach(combo => { %>
+          <a href="/browse/<%= level.slug %>/<%= combo.slug %>" class="combo-card" style="--combo-color: <%= combo.color %>">
+            <div class="combo-card-header">
+              <div class="combo-symbol" style="background: <%= combo.color %>">
+                <%= combo.name.length > 5 ? combo.name.substring(0, 3) : combo.name %>
+              </div>
+              <div>
+                <h3><%= combo.name %></h3>
+                <p><%= combo.description || 'Click to see classes and notes.' %></p>
+              </div>
+            </div>
+            <div class="combo-card-footer">
+              <div class="combo-card-stats">
+                <span>📁 <%= combo.class_count || 0 %> classes</span>
+                <span>📄 <%= combo.note_count || 0 %> notes</span>
+              </div>
+              <div class="combo-card-arrow">→</div>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>

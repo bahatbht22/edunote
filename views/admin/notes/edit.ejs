@@ -1,0 +1,56 @@
+<div class="admin-page-header">
+  <div>
+    <h1>Edit Note</h1>
+    <div class="admin-breadcrumb">
+      <a href="<%= typeof session !== 'undefined' && session.adminRole === 'sub' ? '/admin/levels/' + session.adminLevelId + '/combinations' : '/admin/levels' %>">Levels</a> ›
+      <a href="/admin/levels/<%= level.id %>/combinations/<%= combo.id %>/classes/<%= cls.id %>/notes"><%= cls.name %> Notes</a> ›
+      Edit
+    </div>
+  </div>
+</div>
+<div class="card" style="max-width:700px">
+  <div class="card-body">
+    <form action="/admin/levels/<%= level.id %>/combinations/<%= combo.id %>/classes/<%= cls.id %>/notes/<%= note.id %>" method="POST" enctype="multipart/form-data">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Note Title <span class="req">*</span></label>
+          <input type="text" name="title" value="<%= note.title %>" required>
+        </div>
+        <div class="form-group full">
+          <label>Description</label>
+          <textarea name="description"><%= note.description %></textarea>
+        </div>
+        <div class="form-group full">
+          <label>Replace File <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+          <div style="padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:.75rem;font-size:.875rem">
+            Current: <strong><%= note.file_original_name %></strong>
+          </div>
+          <div class="upload-zone" id="uploadZone">
+            <input type="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt" id="fileInput">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">
+              <strong>Upload new file to replace</strong>
+              <span>Leave empty to keep current file</span>
+            </div>
+          </div>
+          <div class="upload-preview" id="uploadPreview" style="display:none">
+            <span>📄</span>
+            <span id="fileName"></span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:1rem;margin-top:1.5rem">
+        <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+        <a href="/admin/levels/<%= level.id %>/combinations/<%= combo.id %>/classes/<%= cls.id %>/notes" class="btn btn-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document.getElementById('fileInput').addEventListener('change', function() {
+    if (this.files.length > 0) {
+      document.getElementById('fileName').textContent = this.files[0].name;
+      document.getElementById('uploadPreview').style.display = 'flex';
+    }
+  });
+</script>

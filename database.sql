@@ -1,0 +1,66 @@
+-- EduNote Database Schema
+-- Run: mysql -u root -p < database.sql
+
+CREATE DATABASE IF NOT EXISTS edunote CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE edunote;
+
+CREATE TABLE IF NOT EXISTS admins (
+  id INT NOT NULL AUTO_INCREMENT,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  name VARCHAR(100) NOT NULL DEFAULT 'Admin',
+  avatar VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS levels (
+  id INT NOT NULL AUTO_INCREMENT,
+  name VARCHAR(150) NOT NULL,
+  slug VARCHAR(150) NOT NULL UNIQUE,
+  description TEXT,
+  color VARCHAR(20) DEFAULT '#4f46e5',
+  order_index INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS combinations (
+  id INT NOT NULL AUTO_INCREMENT,
+  level_id INT NOT NULL,
+  name VARCHAR(150) NOT NULL,
+  slug VARCHAR(200) NOT NULL UNIQUE,
+  description TEXT,
+  color VARCHAR(20) DEFAULT '#6366f1',
+  order_index INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS classes (
+  id INT NOT NULL AUTO_INCREMENT,
+  combination_id INT NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  slug VARCHAR(200) NOT NULL UNIQUE,
+  order_index INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  FOREIGN KEY (combination_id) REFERENCES combinations(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS notes (
+  id INT NOT NULL AUTO_INCREMENT,
+  class_id INT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  file_name VARCHAR(255) NOT NULL,
+  file_original_name VARCHAR(255) NOT NULL,
+  file_size BIGINT DEFAULT 0,
+  file_type VARCHAR(100),
+  file_url TEXT,
+  download_count INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
+);

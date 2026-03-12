@@ -1,0 +1,103 @@
+<div class="admin-page-header">
+  <div>
+    <h1 class="admin-page-title">Upload Note</h1>
+    <div class="admin-breadcrumb">
+      <a href="<%= typeof session !== 'undefined' && session.adminRole === 'sub' ? '/admin/levels/' + session.adminLevelId + '/combinations' : '/admin/levels' %>">Levels</a> ›
+      <a href="/admin/levels/<%= level.id %>/combinations"><%= level.name %></a> ›
+      <a href="/admin/levels/<%= level.id %>/combinations/<%= combo.id %>/classes"><%= combo.name %></a> ›
+      <a href="/admin/levels/<%= level.id %>/combinations/<%= combo.id %>/classes/<%= cls.id %>/notes"><%= cls.name %></a> ›
+      Upload
+    </div>
+  </div>
+  <a href="/admin/levels/<%= level.id %>/combinations/<%= combo.id %>/classes/<%= cls.id %>/notes" class="btn-outline">← Back</a>
+</div>
+
+<div class="admin-form-card" style="max-width:700px">
+  <form action="/admin/levels/<%= level.id %>/combinations/<%= combo.id %>/classes/<%= cls.id %>/notes" method="POST" enctype="multipart/form-data" id="uploadForm">
+
+    <div class="form-group">
+      <label>Note Title <span style="color:var(--error)">*</span></label>
+      <input type="text" name="title" class="form-input" placeholder="e.g. Introduction to Algebra — Chapter 1" required>
+    </div>
+
+    <div class="form-group">
+      <label>Description <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+      <textarea name="description" class="form-input" rows="3" placeholder="Brief description of what this note covers..." style="resize:vertical"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>File <span style="color:var(--error)">*</span></label>
+      <label class="upload-zone" id="uploadZone" for="fileInput">
+        <input type="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt" required id="fileInput">
+        <div class="upload-zone-icon">📁</div>
+        <div class="upload-zone-text">Click to choose file or drag & drop</div>
+        <div class="upload-zone-sub">PDF, DOC, DOCX, PPT, PPTX, TXT — max 50MB</div>
+      </label>
+      <div class="upload-file-selected" id="fileSelected">
+        <span>📄</span>
+        <span id="fileName">No file selected</span>
+        <span style="margin-left:auto;font-size:.78rem;color:#065f46" id="fileSize"></span>
+      </div>
+      <div class="upload-progress" id="uploadProgress">
+        <div class="upload-progress-bar" id="progressBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" id="submitBtn">
+        <span id="submitText">📤 Upload Note</span>
+      </button>
+      <a href="/admin/levels/<%= level.id %>/combinations/<%= combo.id %>/classes/<%= cls.id %>/notes" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const fileSelected = document.getElementById('fileSelected');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const uploadZone = document.getElementById('uploadZone');
+const uploadProgress = document.getElementById('uploadProgress');
+const progressBar = document.getElementById('progressBar');
+const submitBtn = document.getElementById('submitBtn');
+const submitText = document.getElementById('submitText');
+
+fileInput.addEventListener('change', function() {
+  if (this.files.length > 0) {
+    const f = this.files[0];
+    fileName.textContent = f.name;
+    fileSize.textContent = (f.size / 1024 / 1024).toFixed(2) + ' MB';
+    fileSelected.style.display = 'flex';
+    uploadZone.style.borderColor = 'var(--success)';
+    uploadZone.style.background = 'var(--success-light)';
+  }
+});
+
+uploadZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  uploadZone.classList.add('drag-over');
+});
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  if (e.dataTransfer.files.length > 0) {
+    fileInput.files = e.dataTransfer.files;
+    fileInput.dispatchEvent(new Event('change'));
+  }
+});
+
+document.getElementById('uploadForm').addEventListener('submit', function() {
+  if (!fileInput.files.length) return;
+  submitText.textContent = '⏳ Uploading...';
+  submitBtn.disabled = true;
+  uploadProgress.style.display = 'block';
+  // Animate progress bar
+  let w = 0;
+  const interval = setInterval(() => {
+    w = Math.min(w + Math.random() * 8, 85);
+    progressBar.style.width = w + '%';
+  }, 200);
+});
+</script>

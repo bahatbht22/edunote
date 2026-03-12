@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'Admin — EduNote' %></title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <!-- Mobile topbar -->
+  <div class="admin-topbar">
+    <div class="admin-topbar-brand">📚 Edu<span>Note</span></div>
+    <button class="hamburger-btn" id="sidebarToggle">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-logo">📚 Edu<span>Note</span></div>
+
+    <div class="sidebar-avatar">
+      <% if (admin && admin.avatar) { %>
+        <img src="/avatars/<%= admin.avatar %>" alt="Admin" class="sidebar-avatar-img">
+      <% } else { %>
+        <div class="sidebar-avatar-initial"><%= admin ? admin.name.charAt(0).toUpperCase() : 'A' %></div>
+      <% } %>
+      <div>
+        <div class="sidebar-avatar-name"><%= admin ? admin.name : 'Admin' %></div>
+        <div class="sidebar-avatar-role"><%= typeof session !== "undefined" && session.adminRole === "sub" ? "Level Admin" : "Super Admin" %></div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Overview</div>
+      <% if (typeof session !== "undefined" && session.adminRole === "super") { %>
+      <a href="/admin/dashboard" class="sidebar-link" id="nav-dashboard">
+        <span class="icon">📊</span> Dashboard
+      </a>
+      <% } %>
+
+      <div class="sidebar-section-label">Content</div>
+      <% if (typeof session !== 'undefined' && session.adminRole === 'super') { %>
+        <a href="/admin/levels" class="sidebar-link" id="nav-levels">
+          <span class="icon">🎓</span> Levels
+          <span style="margin-left:auto;font-size:.72rem;color:rgba(255,255,255,.35)">→ Combos → Classes → Notes</span>
+        </a>
+      <% } else if (typeof session !== 'undefined' && session.adminLevelId) { %>
+        <a href="/admin/levels/<%= session.adminLevelId %>/combinations" class="sidebar-link" id="nav-levels">
+          <span class="icon">🎓</span> My Level
+          <span style="margin-left:auto;font-size:.72rem;color:rgba(255,255,255,.35)">→ Combos → Notes</span>
+        </a>
+      <% } %>
+
+      <% if (typeof session !== 'undefined' && session.adminRole === 'super') { %>
+        <div class="sidebar-section-label">Administration</div>
+        <a href="/admin/subadmins" class="sidebar-link" id="nav-subadmins">
+          <span class="icon">👥</span> Sub-Admins
+        </a>
+        <a href="/admin/requests" class="sidebar-link" id="nav-requests">
+          <span class="icon">📋</span> Requests
+          <% if (typeof pendingRequestCount !== 'undefined' && pendingRequestCount > 0) { %>
+            <span style="margin-left:auto;background:#f59e0b;color:white;border-radius:100px;padding:.1rem .5rem;font-size:.7rem;font-weight:700"><%= pendingRequestCount %></span>
+          <% } %>
+        </a>
+      <% } %>
+
+      <div class="sidebar-section-label">Account</div>
+      <a href="/admin/settings" class="sidebar-link" id="nav-settings">
+        <span class="icon">⚙️</span> Settings
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/admin/logout" class="sidebar-link" style="color:rgba(239,68,68,.8)">
+        <span class="icon">🚪</span> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="admin-main">
+    <div class="admin-content">
+      <% if (locals.success && success.length > 0) { %>
+        <div class="flash flash-success">✓ <%= success[0] %></div>
+      <% } %>
+      <% if (locals.error && error.length > 0) { %>
+        <div class="flash flash-error">⚠ <%= error[0] %></div>
+      <% } %>
+
+      <%- body %>
+    </div>
+  </main>
+
+  <script>
+    // Sidebar toggle
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('adminSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    function openSidebar() {
+      sidebar.classList.add('open');
+      overlay.classList.add('active');
+    }
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('active');
+    }
+
+    sidebarToggle.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+    overlay.addEventListener('click', closeSidebar);
+
+    // Active nav detection — purely client-side, no EJS
+    const path = window.location.pathname;
+    const navMap = {
+      'nav-dashboard':  '/admin/dashboard',
+      'nav-levels':     '/admin/levels',
+      'nav-subadmins':  '/admin/subadmins',
+      'nav-requests':   '/admin/requests',
+      'nav-settings':   '/admin/settings'
+    };
+    Object.entries(navMap).forEach(([id, href]) => {
+      const el = document.getElementById(id);
+      if (el && path.startsWith(href)) el.classList.add('active');
+    });
+  </script>
+</body>
+</html>

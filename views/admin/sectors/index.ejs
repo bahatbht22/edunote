@@ -1,0 +1,50 @@
+<div class="admin-page">
+  <div class="page-title-row">
+    <div>
+      <h2>Sectors</h2>
+      <p>Each sector has its own levels, and each level has its own notes</p>
+    </div>
+    <a href="/admin/sectors/new" class="btn btn-primary">+ New Sector</a>
+  </div>
+
+  <% if (sectors.length === 0) { %>
+    <div class="empty-state-card">
+      <div class="empty-icon">◈</div>
+      <h3>No sectors yet</h3>
+      <p>Create your first subject sector. You can then add levels inside it.</p>
+      <a href="/admin/sectors/new" class="btn btn-primary">Create First Sector</a>
+    </div>
+  <% } else { %>
+    <div class="sectors-manage-grid">
+      <% sectors.forEach(sector => { %>
+        <div class="sector-manage-card" style="--sc: <%= sector.color %>">
+          <div class="smc-header">
+            <div class="smc-dot" style="background:<%= sector.color %>"><%= sector.name.charAt(0) %></div>
+            <div class="smc-info">
+              <h3><%= sector.name %></h3>
+              <small>/notes/<%= sector.slug %></small>
+            </div>
+            <div class="smc-stats">
+              <span class="smc-stat"><strong><%= sector.level_count || 0 %></strong> levels</span>
+              <span class="smc-stat"><strong><%= sector.note_count || 0 %></strong> notes</span>
+            </div>
+          </div>
+          <% if (sector.description) { %>
+            <p class="smc-desc"><%= sector.description %></p>
+          <% } %>
+          <div class="smc-actions">
+            <a href="/admin/sectors/<%= sector.id %>/levels" class="btn btn-sm btn-primary">
+              ◑ Manage Levels
+            </a>
+            <a href="/notes/<%= sector.slug %>" class="tbl-btn tbl-btn-view" target="_blank">View</a>
+            <a href="/admin/sectors/<%= sector.id %>/edit" class="tbl-btn tbl-btn-edit">Edit</a>
+            <form action="/admin/sectors/<%= sector.id %>/delete" method="POST" style="display:inline"
+                  onsubmit="return confirm('Delete <%= sector.name %> and ALL its levels and notes?')">
+              <button type="submit" class="tbl-btn tbl-btn-del">Delete</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>

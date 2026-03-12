@@ -1,0 +1,36 @@
+<section class="page-header">
+  <div class="container">
+    <a href="/" class="back-link">← Back to Home</a>
+    <h1>Browse <em>Subjects</em></h1>
+    <p>Select a subject — then choose your education level to find the right notes</p>
+  </div>
+</section>
+
+<section class="sectors-page">
+  <div class="container">
+    <% if (sectors.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-icon">📚</div>
+        <h3>No subjects available yet</h3>
+        <p>Educational content is being prepared. Check back soon!</p>
+      </div>
+    <% } else { %>
+      <p class="result-count"><strong><%= sectors.length %></strong> subject<%= sectors.length !== 1 ? 's' : '' %> available</p>
+      <div class="sectors-grid sectors-grid-large">
+        <% sectors.forEach(sector => { %>
+          <a href="/notes/<%= sector.slug %>" class="sector-card" style="--sector-color: <%= sector.color %>">
+            <div class="sector-card-top">
+              <div class="sector-icon-wrap"><span class="sector-symbol"><%= sector.name.charAt(0) %></span></div>
+              <span class="sector-count"><%= sector.note_count || 0 %> notes</span>
+            </div>
+            <h3 class="sector-name"><%= sector.name %></h3>
+            <p class="sector-desc"><%= sector.description || 'Explore notes in this subject.' %></p>
+            <div class="sector-cta">
+              Choose Level <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>
