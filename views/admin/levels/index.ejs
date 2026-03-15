@@ -1,35 +1,35 @@
 <div class="admin-page">
   <div class="admin-page-header">
-    <h1>🎓 Education Levels</h1>
+    <div>
+      <h1>🎓 Education Levels</h1>
+      <p>Manage top-level categories. Each level contains combinations and classes.</p>
+    </div>
     <a href="/admin/levels/create" class="btn btn-primary">+ Add Level</a>
   </div>
-
-  <div class="admin-table-card">
-    <% if (levels.length === 0) { %>
-      <div class="empty-state"><p>No education levels yet. <a href="/admin/levels/create">Add one</a></p></div>
-    <% } else { %>
-      <table class="admin-table">
-        <thead>
-          <tr><th>Icon</th><th>Name</th><th>Description</th><th>Color</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-          <% levels.forEach(level => { %>
-          <tr>
-            <td><%= level.icon %></td>
-            <td><strong><%= level.name %></strong></td>
-            <td><%= level.description || '—' %></td>
-            <td><span class="color-dot" style="background:<%= level.color %>"></span></td>
-            <td class="table-actions">
-              <a href="/admin/levels/<%= level.id %>/combinations" class="btn btn-sm btn-primary">Combinations →</a>
+  <% if (levels.length === 0) { %>
+    <div class="admin-table-card"><div class="empty-state"><p>No levels yet. <a href="/admin/levels/create">Add the first one</a></p></div></div>
+  <% } else { %>
+    <div class="levels-cards-grid">
+      <% levels.forEach(level => { %>
+        <div class="level-card-admin" style="--lc: <%= level.color %>">
+          <div class="level-card-header">
+            <div class="level-card-icon"><%= level.icon %></div>
+            <div>
+              <div class="level-card-name"><%= level.name %></div>
+              <div class="level-card-desc"><%= level.description || 'No description' %></div>
+            </div>
+          </div>
+          <div class="level-card-footer">
+            <a href="/admin/levels/<%= level.id %>/combinations" class="btn btn-sm btn-primary">Combinations →</a>
+            <div class="level-card-actions">
               <a href="/admin/levels/<%= level.id %>/edit" class="btn btn-sm btn-secondary">Edit</a>
-              <form action="/admin/levels/<%= level.id %>/delete" method="POST" style="display:inline" onsubmit="return confirm('Delete this level and ALL its combinations/classes/notes?')">
+              <form action="/admin/levels/<%= level.id %>/delete" method="POST" style="display:inline" onsubmit="return confirm('Delete this level and ALL its content?')">
                 <button class="btn btn-sm btn-danger">Delete</button>
               </form>
-            </td>
-          </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    <% } %>
-  </div>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
 </div>

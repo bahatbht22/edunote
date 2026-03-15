@@ -2,38 +2,39 @@
   <div class="admin-page-header">
     <div>
       <div class="breadcrumb-admin">
-        <a href="/admin/levels">Levels</a> › <%= level.name %>
+        <a href="/admin/levels">Levels</a>
+        <span>›</span>
+        <span><%= level.name %></span>
       </div>
       <h1><%= level.icon %> <%= level.name %> — <% if(level.slug==='tvet'){ %>Trades<% }else{ %>Combinations<% } %></h1>
+      <p>Each combination holds class years and their notes.</p>
     </div>
-    <a href="/admin/levels/<%= level.id %>/combinations/create" class="btn btn-primary">+ Add <% if(level.slug==='tvet'){ %>Trade<% }else{ %>Combination<% } %></a>
+    <a href="/admin/levels/<%= level.id %>/combinations/create" class="btn btn-primary">
+      + Add <% if(level.slug==='tvet'){ %>Trade<% }else{ %>Combination<% } %>
+    </a>
   </div>
-
-  <div class="admin-table-card">
-    <% if (combinations.length === 0) { %>
-      <div class="empty-state"><p>No combinations yet.</p></div>
-    <% } else { %>
-      <table class="admin-table">
-        <thead>
-          <tr><th>Name</th><th>Full Name</th><th>Classes</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-          <% combinations.forEach(combo => { %>
-          <tr>
-            <td><span class="combo-badge" style="background:<%= combo.color %>"><%= combo.name %></span></td>
-            <td><%= combo.full_name || '—' %></td>
-            <td><%= combo.class_count %></td>
-            <td class="table-actions">
-              <a href="/admin/combinations/<%= combo.id %>/classes" class="btn btn-sm btn-primary">Classes →</a>
-              <a href="/admin/levels/<%= level.id %>/combinations/<%= combo.id %>/edit" class="btn btn-sm btn-secondary">Edit</a>
-              <form action="/admin/levels/<%= level.id %>/combinations/<%= combo.id %>/delete" method="POST" style="display:inline" onsubmit="return confirm('Delete this combination and all its classes/notes?')">
-                <button class="btn btn-sm btn-danger">Delete</button>
-              </form>
-            </td>
-          </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    <% } %>
-  </div>
+  <% if (combinations.length === 0) { %>
+    <div class="admin-table-card"><div class="empty-state"><p>No combinations yet. <a href="/admin/levels/<%= level.id %>/combinations/create">Add the first one</a></p></div></div>
+  <% } else { %>
+    <div class="combo-cards-grid">
+      <% combinations.forEach(combo => { %>
+        <div class="combo-card-admin" style="--cc: <%= combo.color %>">
+          <div class="combo-card-name">
+            <span class="combo-badge" style="background:<%= combo.color %>"><%= combo.name %></span>
+          </div>
+          <% if (combo.full_name) { %><div class="combo-card-full"><%= combo.full_name %></div><% } %>
+          <div class="combo-card-meta">
+            <span style="font-size:.78rem;color:var(--muted)"><%= combo.class_count %> class<%= combo.class_count !== 1 ? 'es' : '' %></span>
+          </div>
+          <div class="combo-card-actions">
+            <a href="/admin/combinations/<%= combo.id %>/classes" class="btn btn-sm btn-primary">Classes →</a>
+            <a href="/admin/levels/<%= level.id %>/combinations/<%= combo.id %>/edit" class="btn btn-sm btn-secondary">Edit</a>
+            <form action="/admin/levels/<%= level.id %>/combinations/<%= combo.id %>/delete" method="POST" style="display:inline" onsubmit="return confirm('Delete this combination and all its classes and notes?')">
+              <button class="btn btn-sm btn-danger">Delete</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
 </div>

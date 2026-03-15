@@ -5,30 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/admin.css">
 </head>
 <body class="admin-body">
-
-  <!-- Mobile topbar (visible on small screens) -->
   <div class="mobile-topbar" id="mobileTopbar">
-    <a href="/admin/dashboard" class="mobile-logo">📚 EduNote</a>
+    <a href="/admin/dashboard" class="mobile-logo">✦ Edu<strong>Note</strong></a>
     <button class="mobile-sidebar-btn" id="sidebarToggleBtn" aria-label="Toggle menu">
       <span></span><span></span><span></span>
     </button>
   </div>
-
-  <!-- Sidebar overlay (mobile) -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
   <div class="admin-layout">
-    <!-- Sidebar -->
     <aside class="sidebar" id="adminSidebar">
       <div class="sidebar-header">
-        <a href="/admin/dashboard" class="sidebar-logo">
-          <span>📚</span> EduNote
-        </a>
-        <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">✕</button>
+        <a href="/admin/dashboard" class="sidebar-logo">✦ Edu<strong>Note</strong></a>
+        <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close">✕</button>
       </div>
       <div class="sidebar-admin">
         <% if (locals.adminAvatar && adminAvatar) { %>
@@ -45,21 +37,25 @@
         <a href="/admin/dashboard" class="nav-item <%= locals.title && title.includes('Dashboard') ? 'active' : '' %>">
           <span class="nav-icon">🏠</span> Dashboard
         </a>
-        <div class="nav-section">ACADEMIC STRUCTURE</div>
-        <a href="/admin/levels" class="nav-item <%= locals.title && (title.includes('Level') || title.includes('Combination') || title.includes('Class')) ? 'active' : '' %>">
+        <div class="nav-section">Academic Structure</div>
+        <a href="/admin/levels" class="nav-item <%= locals.title && (title.includes('Level') || title.includes('Combination') || title.includes('Class') || title.includes('Notes')) ? 'active' : '' %>">
           <span class="nav-icon">🎓</span> Education Levels
         </a>
-        <div class="nav-section">ACCOUNT</div>
+        <div class="nav-section">Team</div>
+        <a href="/admin/subadmins" class="nav-item <%= locals.title && title.includes('Sub-Admin') ? 'active' : '' %>">
+          <span class="nav-icon">👥</span> Sub-Admins
+        </a>
+        <a href="/admin/requests" class="nav-item <%= locals.title && title.includes('Request') ? 'active' : '' %>">
+          <span class="nav-icon">📋</span> Requests
+        </a>
+        <div class="nav-section">Account</div>
+        <a href="/" target="_blank" class="nav-item"><span class="nav-icon">🌐</span> View Site</a>
         <a href="/admin/settings" class="nav-item <%= locals.title && title.includes('Settings') ? 'active' : '' %>">
           <span class="nav-icon">⚙️</span> Settings
         </a>
-        <a href="/admin/logout" class="nav-item nav-logout">
-          <span class="nav-icon">🚪</span> Logout
-        </a>
+        <a href="/admin/logout" class="nav-item nav-logout"><span class="nav-icon">🚪</span> Logout</a>
       </nav>
     </aside>
-
-    <!-- Main content -->
     <div class="admin-main">
       <% if (locals.success_msg && success_msg.length > 0) { %>
         <div class="alert alert-success"><%= success_msg %></div>
@@ -70,7 +66,6 @@
       <%- body %>
     </div>
   </div>
-
   <script src="/js/admin.js"></script>
 </body>
 </html>

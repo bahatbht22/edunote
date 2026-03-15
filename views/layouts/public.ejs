@@ -6,63 +6,66 @@
   <title><%= title %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/public.css">
 </head>
 <body>
   <nav class="navbar">
     <div class="nav-container">
-      <a href="/" class="nav-logo">
-        <span class="logo-icon">\u2726</span>
-        <span>Edu<strong>Note</strong></span>
-      </a>
+      <a href="/" class="nav-logo"><span class="logo-icon">✦</span><span>Edu<strong>Note</strong></span></a>
       <ul class="nav-links">
         <li><a href="/">Home</a></li>
         <li><a href="/notes">Browse Notes</a></li>
       </ul>
-      <div class="nav-cta">
-        <a href="/notes" class="btn btn-primary">Get Notes</a>
+      <div class="nav-search">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Search notes…" id="navSearch">
       </div>
+      <div class="nav-cta"><a href="/notes" class="btn btn-primary">Get Notes</a></div>
       <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
         <span></span><span></span><span></span>
       </button>
     </div>
   </nav>
-
   <div class="mobile-menu" id="mobileMenu">
     <a href="/">Home</a>
     <a href="/notes">Browse Notes</a>
     <a href="/notes" class="btn btn-primary">Get Notes</a>
   </div>
-
-  <% if (success && success.length > 0) { %>
-    <div class="flash flash-success"><%= success %></div>
+  <% if (locals.success_msg && success_msg.length > 0) { %>
+    <div class="flash flash-success"><%= success_msg %></div>
   <% } %>
-  <% if (error && error.length > 0) { %>
-    <div class="flash flash-error"><%= error %></div>
+  <% if (locals.error_msg && error_msg.length > 0) { %>
+    <div class="flash flash-error"><%= error_msg %></div>
   <% } %>
-
   <%- body %>
-
   <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-brand">
-        <a href="/" class="nav-logo"><span class="logo-icon">\u2726</span><span>Edu<strong>Note</strong></span></a>
-        <p>Quality educational resources, freely accessible to every student.</p>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="nav-logo"><span class="logo-icon">✦</span><span>Edu<strong>Note</strong></span></a>
+          <p>Quality educational resources, freely accessible to every student in Rwanda and beyond.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Browse</h4>
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/notes">All Subjects</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="/admin/login">Admin Login</a></li>
+          </ul>
+        </div>
       </div>
-      <div class="footer-links">
-        <h4>Quick Links</h4>
-        <ul>
-          <li><a href="/">Home</a></li>
-          <li><a href="/notes">Browse Notes</a></li>
-        </ul>
+      <div class="footer-bottom">
+        <p>&copy; <%= new Date().getFullYear() %> EduNote. All rights reserved.</p>
+        <p>Free educational resources for every student.</p>
       </div>
-    </div>
-    <div class="footer-bottom">
-      <p>&copy; <%= new Date().getFullYear() %> EduNote. All rights reserved.</p>
     </div>
   </footer>
-
   <script src="/js/public.js"></script>
 </body>
 </html>

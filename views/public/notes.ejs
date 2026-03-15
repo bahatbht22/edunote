@@ -1,33 +1,30 @@
-<section class="page-header sector-page-header" style="--sector-color: <%= sector.color %>">
+<section class="page-header" style="--sector-color: <%= sector.color %>">
   <div class="container">
     <nav class="breadcrumb">
       <a href="/notes">Subjects</a>
-      <span class="bc-sep">\u203a</span>
+      <span class="bc-sep">›</span>
       <a href="/notes/<%= sector.slug %>"><%= sector.name %></a>
-      <span class="bc-sep">\u203a</span>
+      <span class="bc-sep">›</span>
       <span><%= level.name %></span>
     </nav>
-    <div class="sector-header-info" style="margin-top:1.25rem">
-      <div class="sector-icon-lg"><span><%= sector.name.charAt(0) %></span></div>
+    <div class="sector-header">
+      <div class="sector-icon-xl"><span><%= sector.name.charAt(0) %></span></div>
       <div>
         <h1><%= level.name %></h1>
-        <p style="color:rgba(255,255,255,0.7)"><%= sector.name %> &mdash; <%= notes.length %> note<%= notes.length != 1 ? 's' : '' %></p>
+        <p style="color:rgba(255,255,255,.6);margin-top:.25rem"><%= sector.name %> &mdash; <%= notes.length %> note<%= notes.length !== 1 ? 's' : '' %></p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Level tab switcher -->
 <% if (allLevels && allLevels.length > 1) { %>
 <div class="level-tabs-bar">
   <div class="container">
     <div class="level-tabs">
       <span class="level-tabs-label">Level:</span>
-      <div class="level-tabs-list">
+      <div class="level-tabs-list" style="display:flex">
         <% allLevels.forEach(l => { %>
-          <a href="/notes/<%= sector.slug %>/<%= l.slug %>"
-             class="level-tab <%= l.id === level.id ? 'active' : '' %>"
-             style="--tc: <%= l.color %>">
+          <a href="/notes/<%= sector.slug %>/<%= l.slug %>" class="level-tab <%= l.id === level.id ? 'active' : '' %>" style="--tc: <%= l.color %>">
             <%= l.name %>
             <span class="tab-count"><%= l.note_count %></span>
           </a>
@@ -38,14 +35,14 @@
 </div>
 <% } %>
 
-<section class="notes-page">
+<section class="notes-section">
   <div class="container">
     <% if (notes.length === 0) { %>
       <div class="empty-state">
-        <div class="empty-icon">\ud83d\udcc4</div>
+        <div class="empty-icon">📄</div>
         <h3>No notes here yet</h3>
-        <p>No notes have been added for <strong><%= level.name %></strong> in <strong><%= sector.name %></strong> yet.</p>
-        <a href="/notes/<%= sector.slug %>" class="btn btn-outline-dark" style="margin-top:1.5rem">\u2190 Choose another level</a>
+        <p>Nothing added for <strong><%= level.name %></strong> in <strong><%= sector.name %></strong> yet.</p>
+        <a href="/notes/<%= sector.slug %>" class="btn btn-outline" style="margin-top:1.5rem">← Choose another level</a>
       </div>
     <% } else { %>
       <div class="notes-grid">
@@ -54,15 +51,16 @@
             <div class="note-card-header">
               <% const ext = note.file_original_name.split('.').pop().toLowerCase(); %>
               <span class="file-badge file-badge-<%= ext %>"><%= ext.toUpperCase() %></span>
-              <div class="note-meta-small">
+              <div class="note-meta">
                 <span><%= note.file_size_formatted %></span>
-                <span>\u00b7</span>
+                <span>·</span>
                 <span><%= note.download_count %> downloads</span>
               </div>
             </div>
             <div class="note-card-body">
               <h3 class="note-title"><%= note.title %></h3>
               <% if (note.description) { %><p class="note-desc"><%= note.description %></p><% } %>
+              <% if (note.subject) { %><span class="note-subject"><%= note.subject %></span><% } %>
             </div>
             <div class="note-card-footer">
               <% if (ext === 'pdf') { %>
@@ -71,6 +69,9 @@
                   View
                 </a>
               <% } %>
+              <a href="/read/<%= note.id %>" class="btn btn-view" style="margin-left:0">
+                📖 Read
+              </a>
               <a href="/download/<%= note.id %>" class="btn btn-download">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 Download

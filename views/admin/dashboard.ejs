@@ -1,69 +1,60 @@
 <div class="admin-page">
   <div class="admin-page-header">
-    <h1>Dashboard</h1>
-    <p>Welcome back, <%= locals.adminName %>!</p>
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome back, <%= locals.adminName %>! Here's what's happening on EduNote.</p>
+    </div>
+    <a href="/" target="_blank" class="btn btn-secondary">🌐 View Site</a>
   </div>
-
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon">📝</div>
-      <div class="stat-value"><%= noteCount %></div>
-      <div class="stat-label">Total Notes</div>
+      <div class="stat-info"><div class="stat-value"><%= noteCount %></div><div class="stat-label">Total Notes</div></div>
     </div>
     <div class="stat-card">
       <div class="stat-icon">⬇️</div>
-      <div class="stat-value"><%= downloads %></div>
-      <div class="stat-label">Total Downloads</div>
+      <div class="stat-info"><div class="stat-value"><%= downloads %></div><div class="stat-label">Total Downloads</div></div>
     </div>
     <div class="stat-card">
       <div class="stat-icon">🎓</div>
-      <div class="stat-value"><%= levels.length %></div>
-      <div class="stat-label">Education Levels</div>
+      <div class="stat-info"><div class="stat-value"><%= levels.length %></div><div class="stat-label">Education Levels</div></div>
     </div>
     <div class="stat-card">
       <div class="stat-icon">📚</div>
-      <div class="stat-value"><%= combinations.length %></div>
-      <div class="stat-label">Combinations/Trades</div>
+      <div class="stat-info"><div class="stat-value"><%= combinations.length %></div><div class="stat-label">Combinations</div></div>
     </div>
   </div>
-
   <div class="quick-actions">
     <h2>Quick Actions</h2>
     <div class="action-grid">
       <a href="/admin/levels" class="action-card">
         <span>🎓</span>
-        <div>
-          <strong>Manage Structure</strong>
-          <p>Levels, combinations, classes</p>
-        </div>
+        <div><strong>Manage Structure</strong><p>Levels, combinations, classes</p></div>
       </a>
-      <a href="/" target="_blank" class="action-card">
-        <span>🌐</span>
-        <div>
-          <strong>View Public Site</strong>
-          <p>See what students see</p>
-        </div>
+      <a href="/admin/subadmins" class="action-card">
+        <span>👥</span>
+        <div><strong>Sub-Admins</strong><p>Manage your team</p></div>
+      </a>
+      <a href="/admin/requests" class="action-card">
+        <span>📋</span>
+        <div><strong>Requests</strong><p>Review pending changes</p></div>
       </a>
       <a href="/admin/settings" class="action-card">
         <span>⚙️</span>
-        <div>
-          <strong>Settings</strong>
-          <p>Update profile & password</p>
-        </div>
+        <div><strong>Settings</strong><p>Profile &amp; password</p></div>
       </a>
     </div>
   </div>
-
   <div class="levels-overview">
     <h2>Education Levels</h2>
     <div class="level-list">
       <% levels.forEach(level => { %>
-      <div class="level-item" style="border-left: 4px solid <%= level.color %>">
+      <div class="level-item" style="border-left:4px solid <%= level.color %>">
         <div class="level-item-info">
           <span class="level-item-icon"><%= level.icon %></span>
           <span class="level-item-name"><%= level.name %></span>
         </div>
-        <a href="/admin/levels/<%= level.id %>/combinations" class="btn btn-sm">Manage →</a>
+        <a href="/admin/levels/<%= level.id %>/combinations" class="btn btn-sm btn-primary">Manage →</a>
       </div>
       <% }) %>
     </div>
