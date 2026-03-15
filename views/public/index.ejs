@@ -5,18 +5,18 @@
     <div class="hero-left">
       <div class="hero-eyebrow"><span></span>Free · No Account Needed</div>
       <h1 class="hero-title">Learn Smarter,<br><em>Study Better</em></h1>
-      <p class="hero-sub">Pick your subject, choose your level, and download high-quality notes instantly. Built for Rwanda's education system — completely free.</p>
+      <p class="hero-sub">Pick your level, choose your combination, and download high-quality notes instantly. Built for Rwanda's education system — completely free.</p>
       <div class="hero-ctas">
         <a href="/notes" class="btn btn-hero">
           Get Notes
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
         </a>
-        <a href="#subjects" class="btn btn-hero-outline">Browse Subjects</a>
+        <a href="#levels" class="btn btn-hero-outline">Browse Levels</a>
       </div>
       <div class="hero-trust">
-        <div class="trust-stat"><strong><%= sectors.length %></strong><span>Subjects</span></div>
-        <div class="trust-divider"></div>
         <div class="trust-stat"><strong><%= levels.length %></strong><span>Levels</span></div>
+        <div class="trust-divider"></div>
+        <div class="trust-stat"><strong><%= levels.reduce((s,l) => s + (l.combo_count||0), 0) %></strong><span>Combinations</span></div>
         <div class="trust-divider"></div>
         <div class="trust-stat"><strong>100%</strong><span>Free</span></div>
       </div>
@@ -24,17 +24,17 @@
     <div class="hero-visual">
       <div class="preview-card pc-1">
         <div class="preview-card-icon" style="background:#7c3aed">∑</div>
-        <div class="preview-card-info"><p>Calculus — Limits &amp; Derivatives</p><span>A'Level · MPC</span></div>
+        <div class="preview-card-info"><p>Calculus — Limits &amp; Derivatives</p><span>A'Level · MPC · S5</span></div>
         <span class="preview-card-badge badge-pdf">PDF</span>
       </div>
       <div class="preview-card pc-2">
         <div class="preview-card-icon" style="background:#2563eb">⚛</div>
-        <div class="preview-card-info"><p>Mechanics — Newton's Laws</p><span>A'Level · PCB</span></div>
+        <div class="preview-card-info"><p>Mechanics — Newton's Laws</p><span>A'Level · PCB · S4</span></div>
         <span class="preview-card-badge badge-docx">DOCX</span>
       </div>
       <div class="preview-card pc-3">
         <div class="preview-card-icon" style="background:#059669">{ }</div>
-        <div class="preview-card-info"><p>Data Structures &amp; Algorithms</p><span>University · CS</span></div>
+        <div class="preview-card-info"><p>Data Structures &amp; Algorithms</p><span>A'Level · MPG · S6</span></div>
         <span class="preview-card-badge badge-pdf">PDF</span>
       </div>
       <div class="preview-card pc-4">
@@ -51,17 +51,17 @@
     <div class="process-steps">
       <div class="process-step">
         <div class="ps-num">1</div>
-        <div class="ps-text"><h4>Choose a Subject</h4><p>Math, Physics, CS &amp; more</p></div>
+        <div class="ps-text"><h4>Choose a Level</h4><p>O'Level, A'Level, TVET</p></div>
       </div>
       <div class="ps-arrow">→</div>
       <div class="process-step">
         <div class="ps-num">2</div>
-        <div class="ps-text"><h4>Select Your Level</h4><p>O'Level, A'Level, TVET</p></div>
+        <div class="ps-text"><h4>Pick Combination</h4><p>MPC, PCB, MEG &amp; others</p></div>
       </div>
       <div class="ps-arrow">→</div>
       <div class="process-step">
         <div class="ps-num">3</div>
-        <div class="ps-text"><h4>Pick Your Combination</h4><p>MPC, PCB, MEG &amp; others</p></div>
+        <div class="ps-text"><h4>Select Class</h4><p>S1 through S6</p></div>
       </div>
       <div class="ps-arrow">→</div>
       <div class="process-step">
@@ -72,32 +72,32 @@
   </div>
 </section>
 
-<section class="subjects-section" id="subjects">
+<section class="subjects-section" id="levels">
   <div class="container">
     <div class="section-header centered">
-      <div class="section-eyebrow">Subjects</div>
-      <h2>Browse by <em>Subject</em></h2>
-      <p>Select a subject — then choose your education level and combination inside</p>
+      <div class="section-eyebrow">Education Levels</div>
+      <h2>Where do you <em>study?</em></h2>
+      <p>Select your education level to find the right notes for your curriculum</p>
     </div>
-    <% if (sectors.length === 0) { %>
+    <% if (levels.length === 0) { %>
       <div class="empty-state">
         <div class="empty-icon">📚</div>
-        <h3>No subjects yet</h3>
+        <h3>No content yet</h3>
         <p>Check back soon for educational content.</p>
       </div>
     <% } else { %>
       <div class="subjects-grid">
-        <% sectors.forEach(sector => { %>
-          <a href="/notes/<%= sector.slug %>" class="subject-card" style="--sc: <%= sector.color %>">
+        <% levels.forEach(level => { %>
+          <a href="/notes/<%= level.slug %>" class="subject-card" style="--sc: <%= level.color %>">
             <div class="subject-card-top">
-              <div class="subject-icon"><span><%= sector.name.charAt(0) %></span></div>
-              <span class="subject-pill"><%= sector.note_count || 0 %> notes</span>
+              <div class="subject-icon"><span><%= level.icon %></span></div>
+              <span class="subject-pill"><%= level.combo_count || 0 %> combinations</span>
             </div>
-            <h3 class="subject-name"><%= sector.name %></h3>
-            <p class="subject-desc"><%= sector.description || 'Explore notes in this subject.' %></p>
+            <h3 class="subject-name"><%= level.name %></h3>
+            <p class="subject-desc"><%= level.description || 'Browse combinations and notes for this level.' %></p>
             <div class="subject-footer">
               <span class="subject-cta">
-                Choose Level
+                Browse Notes
                 <svg class="subject-arrow" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
               </span>
             </div>
@@ -105,7 +105,7 @@
         <% }) %>
       </div>
       <div class="section-cta">
-        <a href="/notes" class="btn btn-outline">View All Subjects →</a>
+        <a href="/notes" class="btn btn-outline">View All Levels →</a>
       </div>
     <% } %>
   </div>
@@ -122,7 +122,7 @@
       <div class="feature-card">
         <div class="feature-icon">📚</div>
         <h3>Rwanda Curriculum Aligned</h3>
-        <p>Notes organized by O'Level, A'Level, and TVET — matching Rwanda's exact education structure and combinations.</p>
+        <p>Notes organized by O'Level, A'Level, and TVET — matching Rwanda's exact education structure with all combinations.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">⚡</div>
@@ -137,12 +137,12 @@
       <div class="feature-card">
         <div class="feature-icon">📂</div>
         <h3>Multiple Formats</h3>
-        <p>PDF, Word documents, PowerPoint presentations, and more — whatever format your teacher uses, we support it.</p>
+        <p>PDF, Word documents, PowerPoint presentations — whatever format your teacher uses, we support it.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🔍</div>
         <h3>Easy to Navigate</h3>
-        <p>Subject → Level → Combination → Class → Notes. A clear path to exactly the content you need.</p>
+        <p>Level → Combination → Class → Notes. A clear path to exactly the content you need, every time.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📱</div>
@@ -158,8 +158,8 @@
     <div class="cta-box">
       <div class="cta-content">
         <h2>Ready to start learning?</h2>
-        <p>Pick your subject, choose your level, download for free.</p>
-        <a href="/notes" class="btn btn-white">Browse All Subjects →</a>
+        <p>Pick your level, choose your combination, download for free.</p>
+        <a href="/notes" class="btn btn-white">Browse All Levels →</a>
       </div>
     </div>
   </div>

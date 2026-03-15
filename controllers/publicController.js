@@ -1,121 +1,117 @@
-const Sector = require('../models/Sector');
-const Level  = require('../models/Level');
-const Note   = require('../models/Note');
-const path   = require('path');
-const fs     = require('fs');
-const { execSync } = require('child_process');
+const EducationLevel = require('../models/EducationLevel');
+const Combination    = require('../models/Combination');
+const Class          = require('../models/Class');
+const Note           = require('../models/Note');
+const path           = require('path');
 
-// \u2500\u2500 helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function getExt(filename) {
-  return path.extname(filename).toLowerCase().replace('.', '');
+  return path.extname(filename || '').toLowerCase().replace('.', '');
 }
-
-async function convertToHtml(filePath, ext) {
-  if (ext === 'docx') {
-    try {
-      const mammoth = require('mammoth');
-      const result  = await mammoth.convertToHtml({ path: filePath });
-      return { html: result.value, method: 'mammoth' };
-    } catch (e) {
-      console.error('mammoth error:', e.message);
-    }
-  }
-
-  // For doc, ppt, pptx \u2014 try LibreOffice
-  if (['doc','ppt','pptx','docx'].includes(ext)) {
-    try {
-      const tmpDir = path.join(require('os').tmpdir(), 'edunote-convert');
-      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
-
-      execSync(
-        `libreoffice --headless --convert-to html --outdir "${tmpDir}" "${filePath}"`,
-        { timeout: 30000, stdio: 'pipe' }
-      );
-
-      const baseName = path.basename(filePath, path.extname(filePath));
-      const outFile  = path.join(tmpDir, baseName + '.html');
-
-      if (fs.existsSync(outFile)) {
-        let html = fs.readFileSync(outFile, 'utf8');
-        // Extract just the body content
-        const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-        if (bodyMatch) html = bodyMatch[1];
-        // Clean up LO's inline styles a bit
-        html = html.replace(/<meta[^>]*>/gi, '').replace(/<link[^>]*>/gi, '');
-        fs.unlinkSync(outFile);
-        return { html, method: 'libreoffice' };
-      }
-    } catch (e) {
-      console.error('LibreOffice convert error:', e.message);
-    }
-  }
-
-  return null;
-}
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 const pub = {
 
   // GET /
   index: async (req, res) => {
     try {
-      const sectors = await Sector.findAll();
-      const levels  = await Level.findAll();
-      res.render('public/index', { title: 'EduNote - Your Learning Resource Hub', sectors, levels, layout: 'layouts/public' });
-    } catch (e) { console.error(e); res.render('public/error', { title: 'Error', message: 'Something went wrong.', layout: 'layouts/public' }); }
-  },
-
-  // GET /notes
-  getSectors: async (req, res) => {
-    try {
-      const sectors = await Sector.findAll();
-      res.render('public/sectors', { title: 'Browse Subjects - EduNote', sectors, layout: 'layouts/public' });
-    } catch (e) { console.error(e); res.render('public/error', { title: 'Error', message: 'Something went wrong.', layout: 'layouts/public' }); }
-  },
-
-  // GET /notes/:sectorSlug
-  getSectorLevels: async (req, res) => {
-    try {
-      const sector = await Sector.findBySlug(req.params.sectorSlug);
-      if (!sector) return res.status(404).render('public/error', { title: '404', message: 'Sector not found.', layout: 'layouts/public' });
-      const levels = await Level.findBySector(sector.id);
-      res.render('public/sector-levels', { title: `${sector.name} \u2014 Choose Level - EduNote`, sector, levels, layout: 'layouts/public' });
-    } catch (e) { console.error(e); res.render('public/error', { title: 'Error', message: 'Something went wrong.', layout: 'layouts/public' }); }
-  },
-
-  // GET /notes/:sectorSlug/:levelSlug
-  getLevelNotes: async (req, res) => {
-    try {
-      const sector = await Sector.findBySlug(req.params.sectorSlug);
-      const level  = await Level.findBySlug(req.params.levelSlug);
-      if (!sector || !level || level.sector_id != sector.id)
-        return res.status(404).render('public/error', { title: '404', message: 'Page not found.', layout: 'layouts/public' });
-
-      const notes     = await Note.findByLevel(level.id);
-      const allLevels = await Level.findBySector(sector.id);
-
-      res.render('public/notes', {
-        title: `${level.name} \u2014 ${sector.name} Notes - EduNote`,
-        sector, level, allLevels,
-        notes: notes.map(n => ({ ...n, file_size_formatted: Note.formatFileSize(n.file_size) })),
+      const levels = await EducationLevel.findAll();
+      // Enrich with note counts
+      const levelsWithCounts = await Promise.all(levels.map(async (l) => {
+        const combos = await Combination.findByLevel(l.id);
+        let noteCount = 0;
+        for (const c of combos) {
+          const classes = await Class.findByCombination(c.id);
+          for (const cl of classes) noteCount += (cl.note_count || 0);
+        }
+        return { ...l, note_count: noteCount, combo_count: combos.length };
+      }));
+      res.render('public/index', {
+        title: 'EduNote — Free Educational Notes for Rwanda',
+        levels: levelsWithCounts,
         layout: 'layouts/public'
       });
-    } catch (e) { console.error(e); res.render('public/error', { title: 'Error', message: 'Something went wrong.', layout: 'layouts/public' }); }
+    } catch (e) {
+      console.error(e);
+      res.render('public/error', { title: 'Error', message: 'Something went wrong.', layout: 'layouts/public' });
+    }
   },
 
-  // GET /read/:id \u2014 full-page online reader
-  // GET /read/:id — full-page online reader (Cloudinary-hosted files)
+  // GET /notes  — list all education levels
+  getLevels: async (req, res) => {
+    try {
+      const levels = await EducationLevel.findAll();
+      res.render('public/levels', {
+        title: 'Browse Notes — EduNote',
+        levels,
+        layout: 'layouts/public'
+      });
+    } catch (e) {
+      console.error(e);
+      res.render('public/error', { title: 'Error', message: 'Something went wrong.', layout: 'layouts/public' });
+    }
+  },
+
+  // GET /notes/:levelSlug  — list combinations inside a level
+  getCombinations: async (req, res) => {
+    try {
+      const level = await EducationLevel.findBySlug(req.params.levelSlug);
+      if (!level) return res.status(404).render('public/error', { title: '404', message: 'Level not found.', layout: 'layouts/public' });
+      const combinations = await Combination.findByLevel(level.id);
+      res.render('public/combinations', {
+        title: `${level.name} — Choose Combination`,
+        level,
+        combinations,
+        layout: 'layouts/public'
+      });
+    } catch (e) {
+      console.error(e);
+      res.render('public/error', { title: 'Error', message: 'Something went wrong.', layout: 'layouts/public' });
+    }
+  },
+
+  // GET /notes/:levelSlug/:comboSlug  — list all notes in a combination (all classes merged)
+  getNotes: async (req, res) => {
+    try {
+      const level = await EducationLevel.findBySlug(req.params.levelSlug);
+      const combo = await Combination.findBySlug(req.params.comboSlug);
+      if (!level || !combo || combo.education_level_id !== level.id)
+        return res.status(404).render('public/error', { title: '404', message: 'Page not found.', layout: 'layouts/public' });
+
+      const classes = await Class.findByCombination(combo.id);
+      // Collect all notes across all classes, grouped by class
+      const classesWith = await Promise.all(classes.map(async (cl) => {
+        const notes = await Note.findByClass(cl.id);
+        return { ...cl, notes: notes.map(n => ({ ...n, file_size_formatted: Note.formatFileSize(n.file_size) })) };
+      }));
+      const allNotes = classesWith.flatMap(cl => cl.notes.map(n => ({ ...n, class_name: cl.name })));
+
+      // All combos in the level for tab switcher
+      const allCombos = await Combination.findByLevel(level.id);
+
+      res.render('public/notes', {
+        title: `${combo.name} — ${level.name} Notes`,
+        level,
+        combo,
+        allCombos,
+        classesWith,
+        allNotes,
+        layout: 'layouts/public'
+      });
+    } catch (e) {
+      console.error(e);
+      res.render('public/error', { title: 'Error', message: 'Something went wrong.', layout: 'layouts/public' });
+    }
+  },
+
+  // GET /read/:id
   readNote: async (req, res) => {
     try {
       const note = await Note.findById(req.params.id);
       if (!note) return res.status(404).render('public/error', { title: '404', message: 'Note not found.', layout: 'layouts/public' });
       if (!note.file_url) return res.status(404).render('public/error', { title: 'Error', message: 'File not found.', layout: 'layouts/public' });
-
       const ext      = getExt(note.file_original_name || note.file_name);
       const readMode = ext === 'pdf' ? 'pdf' : 'unsupported';
-
       res.render('public/reader', {
-        title: note.title + ' \u2014 Read Online',
+        title: note.title + ' — Read Online',
         note: { ...note, file_size_formatted: Note.formatFileSize(note.file_size) },
         readMode, html: null, txtContent: null,
         layout: 'layouts/reader'
@@ -126,24 +122,29 @@ const pub = {
     }
   },
 
-  // GET /download/:id — redirect to Cloudinary and track download
+  // GET /download/:id
   downloadNote: async (req, res) => {
     try {
       const note = await Note.findById(req.params.id);
-      if (!note) return res.status(404).render('public/error', { title: '404', message: 'Note not found.', layout: 'layouts/public' });
-      if (!note.file_url) return res.status(404).render('public/error', { title: 'Error', message: 'File not found.', layout: 'layouts/public' });
+      if (!note || !note.file_url) return res.status(404).render('public/error', { title: '404', message: 'Note not found.', layout: 'layouts/public' });
       await Note.incrementDownload(note.id);
       res.redirect(note.file_url);
-    } catch (e) { console.error(e); res.render('public/error', { title: 'Error', message: 'Download failed.', layout: 'layouts/public' }); }
+    } catch (e) {
+      console.error(e);
+      res.render('public/error', { title: 'Error', message: 'Download failed.', layout: 'layouts/public' });
+    }
   },
 
-  // GET /view/:id — inline PDF via Cloudinary URL redirect
+  // GET /view/:id — inline PDF
   viewNote: async (req, res) => {
     try {
       const note = await Note.findById(req.params.id);
       if (!note || !note.file_url) return res.status(404).send('Not found');
       res.redirect(note.file_url);
-    } catch (e) { console.error(e); res.status(500).send('Error'); }
+    } catch (e) {
+      console.error(e);
+      res.status(500).send('Error');
+    }
   }
 };
 

@@ -1,140 +1,30 @@
-<!-- Level images mapped by slug -->
-<% const levelImages = {
-  'olevel': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Rwanda_classroom.jpg/1280px-Rwanda_classroom.jpg',
-  'alevel': 'https://images.unsplash.com/photo-1532094349884-543559b8e9e4?w=800&q=80',
-  'tvet':   'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=800&q=80'
-}; %>
-
-<section class="page-hero">
-  <div class="page-hero-inner">
-    <div class="breadcrumb">
-      <a href="/">Home</a>
-      <span class="breadcrumb-sep">›</span>
-      <span class="current">Browse Notes</span>
-    </div>
-    <h1 class="page-hero-title">Browse by Education Level</h1>
-    <p class="page-hero-desc">Select your education level to find notes for your combination or trade.</p>
+<section class="page-header">
+  <div class="container">
+    <a href="/" class="back-link">← Back to Home</a>
+    <h1>Browse <em>Notes</em></h1>
+    <p>Select your education level to find combinations and notes</p>
   </div>
 </section>
-
-<section class="section">
-  <div class="section-inner">
-    <div class="levels-visual-grid">
-      <% levels.forEach(level => { %>
-        <%
-          const imgUrl = level.image_url || levelImages[level.slug] || null;
-          const isOlevel = level.name.includes("O'Level") || level.name.toLowerCase().includes('ordinary');
-          const isAlevel = level.name.includes("A'Level") || level.name.toLowerCase().includes('advanced');
-          const isTvet   = level.name.toLowerCase().includes('tvet');
-          const icon = isOlevel ? '📘' : isAlevel ? '🎓' : isTvet ? '🔧' : '📚';
-        %>
-        <a href="/browse/<%= level.slug %>" class="level-visual-card" style="--card-color: <%= level.color %>">
-          <% if (imgUrl) { %>
-          <div class="level-card-img" style="background-image:url('<%= imgUrl %>')">
-            <div class="level-card-img-overlay"></div>
-          </div>
-          <% } else { %>
-          <div class="level-card-img level-card-img-fallback" style="background: linear-gradient(135deg, <%= level.color %>22, <%= level.color %>44)">
-            <div class="level-card-img-icon"><%= icon %></div>
-          </div>
-          <% } %>
-          <div class="level-card-content">
-            <div class="level-card-badge" style="background:<%= level.color %>22;border:1px solid <%= level.color %>44;color:<%= level.color %>">
-              <%= icon %> <%= isOlevel ? "O'Level" : isAlevel ? "A'Level" : isTvet ? 'TVET' : 'Level' %>
+<section class="sectors-page">
+  <div class="container">
+    <% if (levels.length === 0) { %>
+      <div class="empty-state"><div class="empty-icon">📚</div><h3>No content yet</h3><p>Check back soon!</p></div>
+    <% } else { %>
+      <p class="result-count"><strong><%= levels.length %></strong> education level<%= levels.length !== 1 ? 's' : '' %> available</p>
+      <div class="subjects-grid">
+        <% levels.forEach(level => { %>
+          <a href="/notes/<%= level.slug %>" class="subject-card" style="--sc: <%= level.color %>">
+            <div class="subject-card-top">
+              <div class="subject-icon"><span><%= level.icon %></span></div>
             </div>
-            <h3 class="level-card-title"><%= level.name %></h3>
-            <p class="level-card-desc"><%= level.description || 'Browse combinations and access notes for this level.' %></p>
-            <div class="level-card-cta" style="color:<%= level.color %>">
-              Browse Notes <span style="margin-left:.25rem">→</span>
+            <h3 class="subject-name"><%= level.name %></h3>
+            <p class="subject-desc"><%= level.description || 'Browse combinations and notes for this level.' %></p>
+            <div class="subject-footer">
+              <span class="subject-cta">Browse <svg class="subject-arrow" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg></span>
             </div>
-          </div>
-        </a>
-      <% }) %>
-      <% if (levels.length === 0) { %>
-        <div class="empty-state" style="grid-column:1/-1">
-          <div class="empty-icon">📭</div>
-          <h3>No levels yet</h3>
-          <p>Content is being added. Check back soon.</p>
-        </div>
-      <% } %>
-    </div>
+          </a>
+        <% }) %>
+      </div>
+    <% } %>
   </div>
 </section>
-
-<style>
-.levels-visual-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 1.75rem;
-}
-.level-visual-card {
-  border-radius: 16px;
-  overflow: hidden;
-  text-decoration: none;
-  background: white;
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 12px rgba(0,0,0,.06);
-  transition: transform .22s ease, box-shadow .22s ease;
-  display: flex;
-  flex-direction: column;
-}
-.level-visual-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0,0,0,.12);
-}
-.level-card-img {
-  height: 200px;
-  background-size: cover;
-  background-position: center;
-  position: relative;
-  flex-shrink: 0;
-}
-.level-card-img-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,.08) 0%, rgba(0,0,0,.45) 100%);
-}
-.level-card-img-fallback {
-  display: flex; align-items: center; justify-content: center;
-}
-.level-card-img-icon { font-size: 4rem; }
-.level-card-content {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: .6rem;
-  flex: 1;
-}
-.level-card-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: .3rem;
-  padding: .25rem .75rem;
-  border-radius: 100px;
-  font-size: .78rem;
-  font-weight: 700;
-  width: fit-content;
-}
-.level-card-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--ink);
-  margin: 0;
-  line-height: 1.3;
-}
-.level-card-desc {
-  font-size: .875rem;
-  color: var(--muted);
-  line-height: 1.6;
-  margin: 0;
-  flex: 1;
-}
-.level-card-cta {
-  font-size: .875rem;
-  font-weight: 700;
-  margin-top: .25rem;
-}
-@media (max-width: 640px) {
-  .levels-visual-grid { grid-template-columns: 1fr; }
-  .level-card-img { height: 160px; }
-}
-</style>
