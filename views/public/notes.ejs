@@ -5,29 +5,37 @@
       <span class="bc-sep">›</span>
       <a href="/notes/<%= level.slug %>"><%= level.name %></a>
       <span class="bc-sep">›</span>
-      <span><%= combo.name %></span>
+      <a href="/notes/<%= level.slug %>/<%= combo.slug %>"><%= combo.name %></a>
+      <span class="bc-sep">›</span>
+      <span><%= cls.name %></span>
     </nav>
     <div style="display:flex;align-items:center;gap:1.25rem;margin-top:.5rem">
-      <div style="width:56px;height:56px;border-radius:16px;background:<%= combo.color %>;display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;font-weight:800;flex-shrink:0"><%= combo.name.charAt(0) %></div>
+      <div style="width:56px;height:56px;border-radius:16px;background:<%= combo.color %>;display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;font-weight:800;flex-shrink:0">
+        <%= cls.name %>
+      </div>
       <div>
-        <h1><%= combo.name %><% if(combo.full_name){ %> <span style="font-weight:400;font-size:1.5rem">— <%= combo.full_name %></span><% } %></h1>
-        <p style="color:rgba(255,255,255,.55);margin-top:.25rem"><%= level.name %> &mdash; <%= allNotes.length %> note<%= allNotes.length !== 1 ? 's' : '' %></p>
+        <h1><%= combo.name %> — <%= cls.name %></h1>
+        <p style="color:rgba(255,255,255,.55);margin-top:.25rem">
+          <%= level.name %> &mdash; <%= notes.length %> note<%= notes.length !== 1 ? 's' : '' %>
+        </p>
       </div>
     </div>
   </div>
 </section>
 
-<% if (allCombos && allCombos.length > 1) { %>
+<!-- Class switcher tabs -->
+<% if (allClasses && allClasses.length > 1) { %>
 <div class="level-tabs-bar">
   <div class="container">
     <div class="level-tabs">
-      <span class="level-tabs-label">Combination:</span>
+      <span class="level-tabs-label">Class:</span>
       <div style="display:flex">
-        <% allCombos.forEach(c => { %>
-          <a href="/notes/<%= level.slug %>/<%= c.slug %>"
-             class="level-tab <%= c.id === combo.id ? 'active' : '' %>"
-             style="--tc: <%= c.color %>">
+        <% allClasses.forEach(c => { %>
+          <a href="/notes/<%= level.slug %>/<%= combo.slug %>/<%= c.slug %>"
+             class="level-tab <%= c.id === cls.id ? 'active' : '' %>"
+             style="--tc: <%= combo.color %>">
             <%= c.name %>
+            <span class="tab-count"><%= c.note_count || 0 %></span>
           </a>
         <% }) %>
       </div>
@@ -38,56 +46,51 @@
 
 <section class="notes-section">
   <div class="container">
-    <% if (allNotes.length === 0) { %>
+    <% if (notes.length === 0) { %>
       <div class="empty-state">
         <div class="empty-icon">📄</div>
         <h3>No notes yet</h3>
-        <p>No notes have been added for <strong><%= combo.name %></strong> yet.</p>
-        <a href="/notes/<%= level.slug %>" class="btn btn-outline" style="margin-top:1.5rem">← Choose another combination</a>
+        <p>No notes have been added for <strong><%= combo.name %> <%= cls.name %></strong> yet.</p>
+        <a href="/notes/<%= level.slug %>/<%= combo.slug %>" class="btn btn-outline" style="margin-top:1.5rem">← Back to classes</a>
       </div>
     <% } else { %>
-      <% classesWith.forEach(cls => { %>
-        <% if (cls.notes.length > 0) { %>
-          <div style="margin-bottom:2.5rem">
-            <h3 style="font-size:1rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)">
-              <%= cls.name %>
-              <span style="font-size:.8rem;font-weight:600;color:var(--muted-lt);margin-left:.5rem"><%= cls.notes.length %> note<%= cls.notes.length !== 1 ? 's' : '' %></span>
-            </h3>
-            <div class="notes-grid">
-              <% cls.notes.forEach((note, i) => { %>
-                <div class="note-card" style="animation-delay:<%= i*0.05 %>s">
-                  <div class="note-card-header">
-                    <% const ext = (note.file_original_name || note.file_name || '').split('.').pop().toLowerCase(); %>
-                    <span class="file-badge file-badge-<%= ext %>"><%= ext.toUpperCase() %></span>
-                    <div class="note-meta">
-                      <span><%= note.file_size_formatted %></span>
-                      <span>·</span>
-                      <span><%= note.download_count %> downloads</span>
-                    </div>
-                  </div>
-                  <div class="note-card-body">
-                    <h3 class="note-title"><%= note.title %></h3>
-                    <% if (note.description) { %><p class="note-desc"><%= note.description %></p><% } %>
-                    <% if (note.subject) { %><span class="note-subject"><%= note.subject %></span><% } %>
-                  </div>
-                  <div class="note-card-footer">
-                    <% if (ext === 'pdf') { %>
-                      <a href="/read/<%= note.id %>" class="btn btn-view" target="_blank">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                        View
-                      </a>
-                    <% } %>
-                    <a href="/download/<%= note.id %>" class="btn btn-download">
-                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                      Download
-                    </a>
-                  </div>
-                </div>
-              <% }) %>
+      <div class="notes-grid">
+        <% notes.forEach((note, i) => { %>
+          <div class="note-card" style="animation-delay:<%= i*0.05 %>s">
+            <div class="note-card-header">
+              <% const ext = (note.file_original_name || note.file_name || '').split('.').pop().toLowerCase(); %>
+              <span class="file-badge file-badge-<%= ext %>"><%= ext.toUpperCase() %></span>
+              <div class="note-meta">
+                <span><%= note.file_size_formatted %></span>
+                <span>·</span>
+                <span><%= note.download_count %> downloads</span>
+              </div>
+            </div>
+            <div class="note-card-body">
+              <h3 class="note-title"><%= note.title %></h3>
+              <% if (note.description) { %><p class="note-desc"><%= note.description %></p><% } %>
+              <% if (note.subject) { %><span class="note-subject"><%= note.subject %></span><% } %>
+            </div>
+            <div class="note-card-footer">
+              <% if (['pdf','docx','doc','ppt','pptx','txt'].includes(ext)) { %>
+                <a href="/read/<%= note.id %>" class="btn btn-view" target="_blank">
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                  Read Online
+                </a>
+              <% } %>
+              <a href="/download/<%= note.id %>" class="btn btn-download">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Download
+              </a>
             </div>
           </div>
-        <% } %>
-      <% }) %>
+        <% }) %>
+      </div>
     <% } %>
   </div>
 </section>
