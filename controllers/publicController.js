@@ -5,6 +5,7 @@ const Note           = require('../models/Note');
 const path           = require('path');
 const fs             = require('fs');
 const os             = require('os');
+const { execSync }   = require('child_process');
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -13,62 +14,125 @@ function getExt(filename) {
   return path.extname(filename).toLowerCase().replace('.', '');
 }
 
-// Stream a remote URL through our server to the browser response.
-// Follows redirects and strips X-Frame-Options so PDFs work in iframes.
-function proxyStream(url, res, hops) {
-  if (hops > 10) { if (!res.headersSent) res.status(500).send('Too many redirects'); return; }
-  const proto = url.startsWith('https') ? require('https') : require('http');
-  const req   = proto.get(url, (upstream) => {
-    if (upstream.statusCode >= 300 && upstream.statusCode < 400 && upstream.headers.location) {
-      upstream.resume();
-      return proxyStream(upstream.headers.location, res, hops + 1);
+// Build a proper Cloudinary download URL that includes the original filename.
+// Cloudinary raw URLs look like: https://res.cloudinary.com/cloud/raw/upload/v.../public_id
+// Appending /original_filename.ext makes the browser save with the right name & extension.
+function buildCloudinaryUrl(fileUrl, fileOriginalName) {
+  if (!fileUrl || !fileOriginalName) return fileUrl;
+  // Already has extension in the URL path — return as-is
+  const urlExt = getExt(fileUrl.split('?')[0].split('/').pop());
+  if (urlExt) return fileUrl;
+  // Append the original filename so Cloudinary serves with proper Content-Disposition
+  return fileUrl + '/' + encodeURIComponent(fileOriginalName);
+}
+
+// Download a URL to a local temp file, following all redirects
+function downloadToTemp(url, ext) {
+  return new Promise((resolve, reject) => {
+    const tmpFile = path.join(os.tmpdir(), `edunote_${Date.now()}.${ext}`);
+    const file    = fs.createWriteStream(tmpFile);
+
+    function doRequest(reqUrl, hops) {
+      if (hops > 10) { file.close(); return reject(new Error('Too many redirects')); }
+      const proto = reqUrl.startsWith('https') ? require('https') : require('http');
+      proto.get(reqUrl, res => {
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          res.resume();
+          return doRequest(res.headers.location, hops + 1);
+        }
+        if (res.statusCode !== 200) {
+          res.resume(); file.close(); fs.unlink(tmpFile, () => {});
+          return reject(new Error(`HTTP ${res.statusCode}`));
+        }
+        res.pipe(file);
+        file.on('finish', () => { file.close(); resolve(tmpFile); });
+        file.on('error',  err  => { fs.unlink(tmpFile, () => {}); reject(err); });
+      }).on('error', err => { file.close(); fs.unlink(tmpFile, () => {}); reject(err); });
     }
-    if (upstream.statusCode !== 200) {
-      upstream.resume();
-      if (!res.headersSent) res.status(upstream.statusCode || 502).send('File unavailable');
-      return;
-    }
-    res.setHeader('Content-Type', upstream.headers['content-type'] || 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline');
-    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-    res.removeHeader('Content-Security-Policy');
-    upstream.pipe(res);
-  });
-  req.on('error', (err) => {
-    console.error('[proxy] error:', err.message);
-    if (!res.headersSent) res.status(502).send('Proxy error: ' + err.message);
-  });
-  req.setTimeout(30000, () => {
-    req.destroy();
-    if (!res.headersSent) res.status(504).send('Proxy timeout');
+    doRequest(url, 0);
   });
 }
 
-// Determine how to render a note in the reader.
-// Returns { readMode, fileUrl }
-// readMode values:
-//   'pdf'      → proxy through /view/:id → iframe
-//   'office'   → Google Docs Viewer iframe (DOCX, DOC, PPT, PPTX)
-//   'txt'      → browser-side fetch + display
-//   'unsupported' → show download prompt
-function getReadMode(note) {
-  const ext    = getExt(note.file_original_name) || getExt(note.file_name);
-  const url    = note.file_url || '';
+// Convert a local file to HTML
+async function convertToHtml(filePath, ext) {
+  if (ext === 'docx') {
+    try {
+      const mammoth = require('mammoth');
+      const result  = await mammoth.convertToHtml({ path: filePath });
+      return { html: result.value };
+    } catch (e) { console.error('mammoth error:', e.message); }
+  }
+  if (['doc', 'ppt', 'pptx'].includes(ext)) {
+    try {
+      const tmpDir = path.join(os.tmpdir(), 'edunote-convert');
+      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+      execSync(
+        `libreoffice --headless --convert-to html --outdir "${tmpDir}" "${filePath}"`,
+        { timeout: 30000, stdio: 'pipe' }
+      );
+      const outFile = path.join(tmpDir, path.basename(filePath, path.extname(filePath)) + '.html');
+      if (fs.existsSync(outFile)) {
+        let html = fs.readFileSync(outFile, 'utf8');
+        const m  = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        if (m) html = m[1];
+        html = html.replace(/<meta[^>]*>/gi, '').replace(/<link[^>]*>/gi, '');
+        fs.unlinkSync(outFile);
+        return { html };
+      }
+    } catch (e) { console.error('LibreOffice error:', e.message); }
+  }
+  return null;
+}
 
-  if (!ext || !url) return { readMode: 'unsupported', fileUrl: url };
+// Get file content for the reader
+async function getFileContent(note) {
+  // Always use file_original_name for extension — file_name is Cloudinary public_id
+  const ext = getExt(note.file_original_name) || getExt(note.file_name);
+  if (!ext) return { readMode: 'unsupported', html: null, txtContent: null };
 
-  if (ext === 'pdf')                              return { readMode: 'pdf',     fileUrl: url };
-  if (['docx','doc','ppt','pptx'].includes(ext))  return { readMode: 'office',  fileUrl: url };
-  if (ext === 'txt')                              return { readMode: 'txt',     fileUrl: url };
+  // PDF handled separately via /view/:id — no conversion needed here
+  if (ext === 'pdf') return { readMode: 'pdf', html: null, txtContent: null };
 
-  return { readMode: 'unsupported', fileUrl: url };
+  const fileUrl = note.file_url;
+
+  // No Cloudinary URL — try legacy local uploads folder
+  if (!fileUrl) {
+    const fp = path.join(__dirname, '..', 'uploads', note.file_name);
+    if (!fs.existsSync(fp)) return { readMode: 'unsupported', html: null, txtContent: null };
+    if (ext === 'txt') return { readMode: 'txt', txtContent: fs.readFileSync(fp, 'utf8'), html: null };
+    const r = await convertToHtml(fp, ext);
+    return r ? { readMode: 'html', html: r.html, txtContent: null }
+             : { readMode: 'unsupported', html: null, txtContent: null };
+  }
+
+  // Download from Cloudinary then convert
+  let tmpPath = null;
+  try {
+    tmpPath = await downloadToTemp(fileUrl, ext);
+    if (ext === 'txt') {
+      const txt = fs.readFileSync(tmpPath, 'utf8');
+      fs.unlink(tmpPath, () => {});
+      return { readMode: 'txt', txtContent: txt, html: null };
+    }
+    if (['docx', 'doc', 'ppt', 'pptx'].includes(ext)) {
+      const r = await convertToHtml(tmpPath, ext);
+      fs.unlink(tmpPath, () => {});
+      return r ? { readMode: 'html', html: r.html, txtContent: null }
+               : { readMode: 'unsupported', html: null, txtContent: null };
+    }
+    fs.unlink(tmpPath, () => {});
+    return { readMode: 'unsupported', html: null, txtContent: null };
+  } catch (e) {
+    if (tmpPath) fs.unlink(tmpPath, () => {});
+    console.error('getFileContent error:', e.message);
+    return { readMode: 'unsupported', html: null, txtContent: null };
+  }
 }
 
 // ── controller ────────────────────────────────────────────────────────────────
 
 const pub = {
 
-  // GET /
   index: async (req, res) => {
     try {
       const levels = await EducationLevel.findAll();
@@ -83,8 +147,7 @@ const pub = {
       }));
       res.render('public/index', {
         title: 'EduNote — Free Educational Notes for Rwanda',
-        levels: levelsWithCounts,
-        layout: 'layouts/public'
+        levels: levelsWithCounts, layout: 'layouts/public'
       });
     } catch (e) {
       console.error(e);
@@ -92,7 +155,6 @@ const pub = {
     }
   },
 
-  // GET /notes
   getLevels: async (req, res) => {
     try {
       const levels = await EducationLevel.findAll();
@@ -103,7 +165,6 @@ const pub = {
     }
   },
 
-  // GET /notes/:levelSlug
   getCombinations: async (req, res) => {
     try {
       const level = await EducationLevel.findBySlug(req.params.levelSlug);
@@ -119,7 +180,6 @@ const pub = {
     }
   },
 
-  // GET /notes/:levelSlug/:comboSlug
   getClasses: async (req, res) => {
     try {
       const level = await EducationLevel.findBySlug(req.params.levelSlug);
@@ -138,7 +198,6 @@ const pub = {
     }
   },
 
-  // GET /notes/:levelSlug/:comboSlug/:classSlug
   getNotes: async (req, res) => {
     try {
       const level = await EducationLevel.findBySlug(req.params.levelSlug);
@@ -163,24 +222,16 @@ const pub = {
     }
   },
 
-  // GET /read/:id — reader page
-  // PDF    → /view/:id proxied through server (avoids Cloudinary X-Frame-Options)
-  // Office → Google Docs Viewer iframe (Google fetches from Cloudinary, we don't)
-  // TXT    → browser fetches file_url via JS fetch()
+  // GET /read/:id — full online reader
   readNote: async (req, res) => {
     try {
       const note = await Note.findById(req.params.id);
       if (!note) return res.status(404).render('public/error', { title: '404', message: 'Note not found.', layout: 'layouts/public' });
-
-      const { readMode, fileUrl } = getReadMode(note);
-
+      const fileData = await getFileContent(note);
       res.render('public/reader', {
-        title:    `${note.title} — Read Online`,
-        note:     { ...note, file_size_formatted: Note.formatFileSize(note.file_size) },
-        readMode,
-        fileUrl,
-        html:       null,
-        txtContent: null,
+        title: `${note.title} — Read Online`,
+        note:  { ...note, file_size_formatted: Note.formatFileSize(note.file_size) },
+        readMode: fileData.readMode, html: fileData.html, txtContent: fileData.txtContent,
         layout: 'layouts/reader'
       });
     } catch (e) {
@@ -190,12 +241,36 @@ const pub = {
   },
 
   // GET /download/:id
+  // Serves the file via our server so we control Content-Disposition with the real filename.
+  // We download to temp then send — this ensures the browser gets the correct filename + extension.
   downloadNote: async (req, res) => {
     try {
       const note = await Note.findById(req.params.id);
       if (!note) return res.status(404).render('public/error', { title: '404', message: 'Note not found.', layout: 'layouts/public' });
+
       await Note.incrementDownload(note.id);
-      if (note.file_url) return res.redirect(note.file_url);
+
+      if (note.file_url) {
+        const ext = getExt(note.file_original_name) || 'bin';
+        let tmpPath = null;
+        try {
+          tmpPath = await downloadToTemp(note.file_url, ext);
+          // Send with original filename so browser saves it correctly
+          res.download(tmpPath, note.file_original_name, (err) => {
+            if (tmpPath) fs.unlink(tmpPath, () => {});
+            if (err && !res.headersSent) {
+              res.status(500).render('public/error', { title: 'Error', message: 'Download failed.', layout: 'layouts/public' });
+            }
+          });
+        } catch (e) {
+          if (tmpPath) fs.unlink(tmpPath, () => {});
+          console.error('download fetch error:', e.message);
+          res.status(502).render('public/error', { title: 'Error', message: 'Could not fetch file from storage.', layout: 'layouts/public' });
+        }
+        return;
+      }
+
+      // Legacy: local file
       const fp = path.join(__dirname, '..', 'uploads', note.file_name);
       if (!fs.existsSync(fp)) return res.status(404).render('public/error', { title: 'Error', message: 'File not found.', layout: 'layouts/public' });
       res.download(fp, note.file_original_name);
@@ -205,23 +280,43 @@ const pub = {
     }
   },
 
-  // GET /view/:id — proxy PDF bytes through server so iframe works
-  // (Cloudinary sends X-Frame-Options: DENY, we strip it)
+  // GET /view/:id — inline PDF viewer
+  // Downloads from Cloudinary to temp file then streams with inline Content-Disposition.
+  // We MUST do this (not redirect) because Cloudinary raw files force Content-Disposition:attachment.
   viewNote: async (req, res) => {
     try {
       const note = await Note.findById(req.params.id);
       if (!note) return res.status(404).send('Not found');
-      if (note.file_url) return proxyStream(note.file_url, res, 0);
-      // Legacy local file
+
+      if (note.file_url) {
+        let tmpPath = null;
+        try {
+          tmpPath = await downloadToTemp(note.file_url, 'pdf');
+          const stat = fs.statSync(tmpPath);
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `inline; filename="${note.file_original_name || 'document.pdf'}"`);
+          res.setHeader('Content-Length', stat.size);
+          const stream = fs.createReadStream(tmpPath);
+          stream.pipe(res);
+          stream.on('end', () => { fs.unlink(tmpPath, () => {}); });
+          stream.on('error', () => { fs.unlink(tmpPath, () => {}); });
+        } catch (e) {
+          if (tmpPath) fs.unlink(tmpPath, () => {});
+          console.error('viewNote fetch error:', e.message);
+          res.status(502).send('Could not load PDF');
+        }
+        return;
+      }
+
+      // Legacy: local file
       const fp = path.join(__dirname, '..', 'uploads', note.file_name);
       if (!fs.existsSync(fp)) return res.status(404).send('File not found');
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'inline');
-      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+      res.setHeader('Content-Disposition', `inline; filename="${note.file_original_name}"`);
       fs.createReadStream(fp).pipe(res);
     } catch (e) {
       console.error(e);
-      if (!res.headersSent) res.status(500).send('Error');
+      res.status(500).send('Error');
     }
   }
 };
