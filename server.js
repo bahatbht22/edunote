@@ -6,6 +6,7 @@ const ejsLayouts = require('express-ejs-layouts');
 const path       = require('path');
 
 const app  = express();
+app.set("trust proxy", 1); // Trust Railway reverse proxy
 const PORT = process.env.PORT || 3000;
 
 app.set('view engine', 'ejs');
