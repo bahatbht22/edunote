@@ -1,0 +1,74 @@
+<section class="page-header">
+  <div class="container">
+    <h1>Search Results</h1>
+    <p style="color:rgba(255,255,255,.55);margin-top:.5rem">
+      <% if (notes.length > 0) { %>
+        Found <strong style="color:white"><%= notes.length %></strong> result<%= notes.length !== 1 ? 's' : '' %> for "<strong style="color:white"><%= query %></strong>"
+      <% } else { %>
+        No results for "<strong style="color:white"><%= query %></strong>"
+      <% } %>
+    </p>
+    <!-- Inline search bar on results page -->
+    <form action="/search" method="GET" style="display:flex;gap:.75rem;margin-top:1.5rem;max-width:480px">
+      <input type="text" name="q" value="<%= query %>"
+        style="flex:1;padding:.75rem 1rem;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:white;font-size:.95rem;outline:none"
+        placeholder="Search notes, subjects, combinations…">
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+  </div>
+</section>
+
+<section class="notes-section">
+  <div class="container">
+    <% if (notes.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3>No notes found</h3>
+        <p>Try searching for a subject name, combination (e.g. MPC), class (e.g. S5), or topic.</p>
+        <a href="/notes" class="btn btn-outline" style="margin-top:1.5rem">Browse All Notes →</a>
+      </div>
+    <% } else { %>
+      <div class="notes-grid">
+        <% notes.forEach((note, i) => { %>
+          <div class="note-card" style="animation-delay:<%= i*0.04 %>s">
+            <div class="note-card-header">
+              <% const ext = (note.file_original_name || '').split('.').pop().toLowerCase(); %>
+              <span class="file-badge file-badge-<%= ext %>"><%= ext.toUpperCase() %></span>
+              <div class="note-meta">
+                <span><%= note.file_size_formatted %></span>
+                <span>·</span>
+                <span><%= note.download_count %> downloads</span>
+              </div>
+            </div>
+            <div class="note-card-body">
+              <h3 class="note-title"><%= note.title %></h3>
+              <!-- Breadcrumb path to this note -->
+              <p style="font-size:.75rem;color:var(--muted);margin-top:.375rem">
+                <%= note.level_name %> › <%= note.combo_name %> › <%= note.class_name %>
+              </p>
+              <% if (note.subject) { %><span class="note-subject"><%= note.subject %></span><% } %>
+              <% if (note.description) { %><p class="note-desc" style="margin-top:.5rem"><%= note.description %></p><% } %>
+            </div>
+            <div class="note-card-footer">
+              <% if (['pdf','docx','doc','ppt','pptx','txt'].includes(ext)) { %>
+                <a href="/read/<%= note.id %>" class="btn btn-view" target="_blank">
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                  Read Online
+                </a>
+              <% } %>
+              <a href="/download/<%= note.id %>" class="btn btn-download">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Download
+              </a>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>

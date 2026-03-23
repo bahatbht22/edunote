@@ -28,6 +28,11 @@
     </div>
   </nav>
   <div class="mobile-menu" id="mobileMenu">
+    <div style="display:flex;gap:.5rem;padding:.25rem 0">
+      <input type="text" id="mobileSearch" placeholder="Search notes…"
+        style="flex:1;padding:.65rem 1rem;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:white;font-size:.9rem;outline:none">
+      <button onclick="doSearch(document.getElementById('mobileSearch').value)" class="btn btn-primary" style="padding:.65rem 1rem">Go</button>
+    </div>
     <a href="/">Home</a>
     <a href="/notes">Browse Notes</a>
     <a href="/notes" class="btn btn-primary">Get Notes</a>

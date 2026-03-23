@@ -88,6 +88,31 @@ class Note {
     return rows;
   }
 
+  static async search(query) {
+    const like = '%' + query + '%';
+    const [rows] = await db.execute(`
+      SELECT n.*, cl.name as class_name, cl.slug as class_slug,
+             c.name as combo_name, c.slug as combo_slug, c.color as combo_color,
+             e.name as level_name, e.slug as level_slug
+      FROM notes n
+      JOIN classes cl ON n.class_id = cl.id
+      JOIN combinations c ON cl.combination_id = c.id
+      JOIN education_levels e ON c.education_level_id = e.id
+      WHERE n.title LIKE ?
+         OR n.subject LIKE ?
+         OR n.description LIKE ?
+         OR c.name LIKE ?
+         OR e.name LIKE ?
+      ORDER BY
+        CASE WHEN n.title LIKE ? THEN 0
+             WHEN n.subject LIKE ? THEN 1
+             ELSE 2 END,
+        n.created_at DESC
+      LIMIT 50
+    `, [like, like, like, like, like, like, like]);
+    return rows;
+  }
+
   static async countAll() {
     const [[row]] = await db.execute('SELECT COUNT(*) as total FROM notes');
     return row.total;

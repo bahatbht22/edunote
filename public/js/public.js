@@ -8,16 +8,12 @@ if (mobileBtn && mobileMenu) {
     mobileBtn.classList.toggle('open', open);
     mobileBtn.setAttribute('aria-expanded', open);
   });
-
-  // Close on outside click
   document.addEventListener('click', (e) => {
     if (!mobileBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
       mobileMenu.classList.remove('open');
       mobileBtn.classList.remove('open');
     }
   });
-
-  // Close on nav link click
   mobileMenu.querySelectorAll('a').forEach(a => {
     a.addEventListener('click', () => {
       mobileMenu.classList.remove('open');
@@ -30,8 +26,33 @@ if (mobileBtn && mobileMenu) {
 const navbar = document.querySelector('.navbar');
 if (navbar) {
   window.addEventListener('scroll', () => {
-    navbar.style.boxShadow = window.scrollY > 10
-      ? '0 4px 20px rgba(0,0,0,0.3)'
-      : 'none';
+    navbar.style.boxShadow = window.scrollY > 10 ? '0 4px 20px rgba(0,0,0,0.3)' : 'none';
   }, { passive: true });
+}
+
+// ── Search input — navigate to /search?q=... on Enter ──
+function doSearch(query) {
+  const q = query.trim();
+  if (!q) return;
+  window.location.href = '/search?q=' + encodeURIComponent(q);
+}
+
+const navSearch = document.getElementById('navSearch');
+if (navSearch) {
+  // Pre-fill if we're on the search page
+  const urlParams = new URLSearchParams(window.location.search);
+  const currentQ  = urlParams.get('q');
+  if (currentQ) navSearch.value = currentQ;
+
+  navSearch.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doSearch(navSearch.value);
+  });
+}
+
+// Mobile search input (if present)
+const mobileSearch = document.getElementById('mobileSearch');
+if (mobileSearch) {
+  mobileSearch.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doSearch(mobileSearch.value);
+  });
 }
