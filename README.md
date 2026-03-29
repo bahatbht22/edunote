@@ -257,3 +257,4 @@ sudo certbot --nginx -d yourdomain.com
 - **Auth**: express-session + bcryptjs
 - **File Upload**: multer
 - **Flash messages**: connect-flash
+# edunote
